@@ -1,12 +1,15 @@
 # GoToCode-plugin
 点击DOM元素跳转到对应的代码行
 
-实际效果如下：
-【图片】
+实现原理：
+![image](https://user-images.githubusercontent.com/12610393/188776410-83e85479-8fb0-47d4-b854-bccc77529d83.png)
+
 
 ### 引入方法
 文件列表
-【图片】
+
+![image](https://user-images.githubusercontent.com/12610393/188776906-464de6cb-6396-4fcf-8483-3527aa887239.png)
+
 
 #### 入口文件添加injectGoToCode
 在index.web.jsx文件中接入injectGoToCode
@@ -63,15 +66,19 @@ module.exports = function (arg) {
 }
 ```
 添加VSCode命令行，command+shift+p 输入PATH，选择 '在PATH中安装"code"命令'
-【图片】
+![image](https://user-images.githubusercontent.com/12610393/188776962-f6d6abb1-146e-4529-9266-f5c4ed61ff2f.png)
 
 ### 关于属性名的问题
 属性值要以data-*开头，原因是View最终渲染成div，是借助react-native-web，我们通过react-native-web的源码，可以看到View不是支持所有的属性值，只支持特定的属性值及aria-和data-开头的属性值才会被添加到div节点上。同时data-*本身就是为了提供所有 HTML 元素上嵌入自定义数据属性的能力。
+
 ⚠️  需要注意的是不同的react-native-web对data-*属性的处理是不同的，比较坑
+
 react-native-web@0.12.0之前版本：/src/exports/View/filterSupportedProps.js 查看支持的属性名：
-【图片】
+![image](https://user-images.githubusercontent.com/12610393/188776710-2fc423fe-7c47-45cf-802c-aa3a4ed29692.png)
+
 react-native-web@0.13.0以后：src/modules/modules/forwardedProp/index.js
-【图片】
+![image](https://user-images.githubusercontent.com/12610393/188776728-88664f44-2731-4e70-81e3-b7535497a5c1.png)
+
 所以添加属性值是有点区别的：
 ```javascript
 // react-native-web@0.13.x 之后版本
@@ -82,9 +89,13 @@ dataSet: { 'source-map': `${filename}:${line}` }
 ```
 ### 关于颗粒度的问题
 如果只选取View、Text作为添加代码行属性的节点类型的话，我们会发现对应有些组件会有如下问题：
-比如使用国际化组件**FormattedMessage**渲染文案的地方，由于**FormattedMessage**最终会渲染为**Text**组件，所以导致点击对应文案都会跳转到**FormattedMessage**源码处，违背了这个工具的初衷。所以babel-plugin-add-code-line添加了两个option来避免这个问题：
-**elementTypes: string**[]   需要添加代码行的节点类型列表 例：['View', 'Text', '**FormattedMessage'**]
-**excludePaths: string[]     **需要屏蔽的文件路径(不需要全部路径)  例：['node_module', 'utils/react-intl']
+
+比如使用国际化组件**FormattedMessage**渲染文案的地方，由于**FormattedMessage**最终会渲染为**Text**组件，所以导致点击对应文案都会跳转到**FormattedMessage**源码处，违背了这个工具的初衷。
+所以babel-plugin-add-code-line添加了两个option来避免这个问题：
+> **elementTypes: string**[]   需要添加代码行的节点类型列表 例：['View', 'Text', '**FormattedMessage'**]
+> 
+> **excludePaths: string**[]   需要屏蔽的文件路径(不需要全部路径)  例：['node_module', 'utils/react-intl']
+
 上面提到的**FormattedMessage**的问题，只需要添加**FormattedMessage**到**elementTypes**，添加utils/react-intl到**excludePaths**即可。
 
 ### 其他
